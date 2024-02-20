@@ -1,0 +1,48 @@
+#pragma semicolon 1
+#pragma newdecls required
+
+#include <sdkhooks>
+
+bool g_bBlockFlashbang;
+
+public Plugin myinfo = 
+{
+	name = "[Blocker] Flashbang $2000$", 
+	version = "1.0", 
+	author = "babka68", 
+	description = "Плагин запрещает подбирать слеповые гранаты на карте $2000$", 
+	url = "https://vk.com/zakazserver68"
+}
+
+public void OnMapStart()
+{
+	char buffer[32];
+	GetCurrentMap(buffer, sizeof(buffer));
+	g_bBlockFlashbang = StrContains(buffer, "$2000$", false) != -1;
+}
+
+public void OnClientPostAdminCheck(int client)
+{
+	SDKHook(client, SDKHook_WeaponCanUse, OnWeaponCanUse);
+}
+
+public Action OnWeaponCanUse(int iClient, int iWeapon)
+{
+	if (!g_bBlockFlashbang)
+	{
+		return Plugin_Continue;
+	}
+	
+	char classname[32];
+	
+	// GetEdictClassname - Извлекает указанное имя класса.
+	GetEdictClassname(iWeapon, classname, sizeof(classname));
+	
+	// strcmp - Сравнивает две строки лексографически.
+	// Запретить кемперам использовать любое оружие, кроме ножа и бомбы
+	if (strcmp(classname, "weapon_flashbang"))
+	{
+		return Plugin_Continue;
+	}
+	return Plugin_Handled;
+} 
